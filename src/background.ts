@@ -7,14 +7,26 @@ const isDevelopment: boolean = process.env.NODE_ENV !== "production";
 
 // keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win: BrowserWindow | null = null;
+let windows: BrowserWindow[] = [];
 
 // standard scheme must be registered before the app is ready
 protocol.registerStandardSchemes(["app"], { secure: true });
 
+function initApplication(): void {
+  if (windows.length > 0) {
+    return;
+  }
+
+  createWindow();
+}
+
 function createWindow(): void {
   // create the browser window.
-  win = new BrowserWindow({ width: 800, height: 600 });
+  let win: BrowserWindow = new BrowserWindow({ width: 800, height: 600, show: false });
+
+  windows.push(win);
+
+  win.setMenuBarVisibility(false);
 
   if (isDevelopment || process.env.IS_TEST) {
     // load the url of the dev server if in development mode
@@ -28,8 +40,13 @@ function createWindow(): void {
     win.loadURL("app://./index.html");
   }
 
+  win.maximize();
+
   win.on("closed", () => {
-    win = null;
+    let idx: number = windows.indexOf(win);
+    if (idx >= 0) {
+      windows.splice(idx, 1);
+    }
   });
 }
 
@@ -45,9 +62,7 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
   // on macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
-    createWindow();
-  }
+  initApplication();
 });
 
 // this method will be called when Electron has finished
@@ -58,7 +73,7 @@ app.on("ready", async () => {
     // install Vue Devtools
     await installVueDevtools();
   }
-  createWindow();
+  initApplication();
 });
 
 // exit cleanly on request from parent process in development mode.
