@@ -5,6 +5,15 @@
       <router-link to="/about">About</router-link>
     </div>
     <router-view/>
+    <div>
+      <p>
+        If Element is successfully added to this project, you'll see an
+        <code v-text="'<el-button>'"></code>
+        below
+      </p>
+      <el-button>el-button</el-button>
+      <el-button>el-button 2</el-button>
+    </div>
   </div>
 </template>
 
@@ -15,7 +24,7 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
+  }
 #nav {
   padding: 30px;
   a {
