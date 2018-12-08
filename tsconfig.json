@@ -11,6 +11,9 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "baseUrl": ".",
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
     "types": [
       "webpack-env",
       "mocha",
