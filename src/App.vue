@@ -1,30 +1,6 @@
 <template>
   <div id="app">
-    <el-tabs>
-      <el-tab-pane label="Default Vue">
-        <div id="nav">
-          <router-link to="/">Home</router-link> |
-          <router-link to="/about">About</router-link>
-          <router-view/>
-        </div>
-      </el-tab-pane>
-      <el-tab-pane label="Element UI">
-        <div>
-          <p>
-            If Element is successfully added to this project, you'll see an
-            <code v-text="'<el-button>'"></code>
-            below
-          </p>
-          <el-button>el-button</el-button>
-          <el-button>el-button 2</el-button>
-        </div>
-      </el-tab-pane>
-    </el-tabs>
-    <div id="appMenuContainer">
-      <el-button type="infor">
-        <img alt="Settings" src="./assets/settings.png">
-      </el-button>
-    </div>
+    <router-view/>
   </div>
 </template>
 
@@ -58,3 +34,27 @@
   padding: 2px;
 }
 </style>
+
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+import { ipcRenderer, Event } from "electron";
+
+@Component({})
+export default class App extends Vue {
+  constructor() {
+    super();
+
+    this.bindIPCEvents();
+  }
+
+  private bindIPCEvents() {
+    ipcRenderer.on("navigationRequest", (e: Event, url: string) =>
+      this.onNavigationRequest(url)
+    );
+  }
+
+  private onNavigationRequest(url: string) {
+    this.$router.push(url);
+  }
+}
+</script>
