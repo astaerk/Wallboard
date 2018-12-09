@@ -1,28 +1,150 @@
 "use strict";
 
-import { app, protocol, BrowserWindow } from "electron";
+import { app, protocol, BrowserWindow, screen } from "electron";
 import { createProtocol, installVueDevtools } from "vue-cli-plugin-electron-builder/lib";
+import SettingsStore from "./background/settingsStore";
+import Settings from "./background/settings";
+import { ipcMain } from "electron";
 
 const isDevelopment: boolean = process.env.NODE_ENV !== "production";
 
 // keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let windows: BrowserWindow[] = [];
+let settingsStore: SettingsStore = new SettingsStore();
 
 // standard scheme must be registered before the app is ready
 protocol.registerStandardSchemes(["app"], { secure: true });
 
 function initApplication(): void {
+  let settings: Settings = loadSettings();
+
+  if (settings.sites.length === 0) {
+    // no settings loaded -> create one window and navigate to settings view
+    closeAllWindows();
+    showSettings();
+  } else {
+    // settings loaded -> create necessary windows
+    showSites(settings);
+  }
+}
+
+function closeAllWindows(): void {
   if (windows.length > 0) {
+    for (let window of windows) {
+      window.close();
+    }
+    windows.length = 0;
+  }
+}
+
+function loadSettings(): Settings {
+  return settingsStore.loadSettings();
+}
+
+function showSettings(): void {
+  // create one window and navigate to the settings view
+  let win: BrowserWindow = createWindow();
+  navigateInWindow(win, "/settings");
+}
+
+function showSites(settings: Settings): void {
+  // create a window per monitor setting
+
+  let openWindows: Array<{ displayId: number, window: BrowserWindow, inUse: boolean }> | null = getOpenWindows();
+
+  let allDisplays: Electron.Display[] = screen.getAllDisplays();
+  let validDisplayIds: Array<number> = allDisplays.map(d => d.id);
+
+  let usedDisplayIds: Array<number> = [];
+  for (let site of settings.sites) {
+    if (usedDisplayIds.indexOf(site.displayId) < 0) {
+      if (validDisplayIds.indexOf(site.displayId) > -1) {
+        usedDisplayIds.push(site.displayId);
+      }
+    }
+  }
+
+  if (usedDisplayIds.length === 0) {
+    closeAllWindows();
+    showSettings();
     return;
   }
 
-  createWindow();
+  for (let usedDisplayId of usedDisplayIds) {
+    let openWindow: { displayId: number, window: BrowserWindow, inUse: boolean } | undefined =
+      openWindows.find(ow => ow.displayId === usedDisplayId);
+
+    if (openWindow) {
+      openWindow.inUse = true;
+      navigateInWindow(openWindow.window, "/");
+    } else {
+      createWindow(usedDisplayId);
+    }
+  }
+
+  let unusedWindows: Array<{ displayId: number, window: BrowserWindow, inUse: boolean }> = openWindows.filter(ow => !ow.inUse);
+
+  for (let uw of unusedWindows) {
+    let idx: number = windows.indexOf(uw.window);
+    uw.window.close();
+    if (idx > -1) {
+      windows.splice(idx, 1);
+    }
+  }
 }
 
-function createWindow(): void {
+function getOpenWindows(): Array<{ displayId: number, window: BrowserWindow, inUse: boolean }> {
+  if (windows.length === 0) {
+    return [];
+  }
+
+  let result: Array<{ displayId: number, window: BrowserWindow, inUse: boolean }> = [];
+
+  for (let window of windows) {
+    let windowBounds: Electron.Rectangle = window.getBounds();
+    let display: Electron.Display = screen.getDisplayMatching(windowBounds);
+    let r: { displayId: number, window: BrowserWindow, inUse: boolean } = {
+      displayId: display.id,
+      window: window,
+      inUse: false
+    };
+    result.push(r);
+  }
+
+  return result;
+}
+
+function createWindow(displayId?: number): BrowserWindow {
   // create the browser window.
-  let win: BrowserWindow = new BrowserWindow({ width: 800, height: 600, show: false });
+  let browserWindowConstructorOptions: Electron.BrowserWindowConstructorOptions = { width: 800, height: 600, show: false };
+
+  if (displayId && displayId >= 0) {
+    var display: Electron.Display | undefined = screen.getAllDisplays().find(d => d.id === displayId);
+    if (display) {
+      browserWindowConstructorOptions.x = display.bounds.x;
+      browserWindowConstructorOptions.y = display.bounds.y;
+      if (browserWindowConstructorOptions.width! > display.bounds.width) {
+        browserWindowConstructorOptions.width = display.bounds.width;
+      }
+      if (browserWindowConstructorOptions.height! > display.bounds.height) {
+        browserWindowConstructorOptions.height = display.bounds.height;
+      }
+    } else {
+      console.log("internal error: display with id '" + displayId + "' not found.");
+    }
+  }
+
+  let win: BrowserWindow = new BrowserWindow(browserWindowConstructorOptions);
+
+  let didFinishLoadResolve: any;
+  let promise: Promise<any> = new Promise<any>((resolve, reject) => {
+    didFinishLoadResolve = resolve;
+  });
+  (<any>win.webContents).WALLBOARD_EXT_DidFinishLoad = promise;
+  win.webContents.on("did-finish-load", () => {
+    didFinishLoadResolve();
+  });
 
   windows.push(win);
 
@@ -40,7 +162,9 @@ function createWindow(): void {
     win.loadURL("app://./index.html");
   }
 
-  win.maximize();
+  win.once("ready-to-show", () => {
+    win.maximize();
+  });
 
   win.on("closed", () => {
     let idx: number = windows.indexOf(win);
@@ -48,7 +172,19 @@ function createWindow(): void {
       windows.splice(idx, 1);
     }
   });
+
+  return win;
 }
+
+function navigateInWindow(window: BrowserWindow, url: string): void {
+  (<any>window.webContents).WALLBOARD_EXT_DidFinishLoad.then(() => {
+    window.webContents.send("navigationRequest", url);
+  });
+}
+
+ipcMain.on("settingsChanged", (e: any) => {
+  initApplication();
+});
 
 // quit when all windows are closed.
 app.on("window-all-closed", () => {
