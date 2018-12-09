@@ -131,7 +131,7 @@ function createWindow(displayId?: number): BrowserWindow {
         browserWindowConstructorOptions.height = display.bounds.height;
       }
     } else {
-      console.log("internal error: display with id '" + displayId + "' not found.");
+      console.error("internal error: display with id '" + displayId + "' not found.");
     }
   }
 
