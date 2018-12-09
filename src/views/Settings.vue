@@ -57,9 +57,9 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import Settings from "../background/settings";
-import SettingsStore from "../background/settingsStore";
-import Site from "../background/site";
+import Settings from "../shared/settings";
+import Site from "../shared/site";
+import SettingsStore from "../render/settingsStore";
 import { ipcRenderer, screen } from "electron";
 
 /*let allDisplays: Electron.Display[] = screen.getAllDisplays();

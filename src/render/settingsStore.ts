@@ -1,4 +1,4 @@
-import Settings from "../shared/settings";
+import Settings from "@/shared/settings";
 import * as fs from "fs";
 import { app } from "electron";
 

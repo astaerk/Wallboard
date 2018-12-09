@@ -3,7 +3,7 @@
 import { app, protocol, BrowserWindow, screen } from "electron";
 import { createProtocol, installVueDevtools } from "vue-cli-plugin-electron-builder/lib";
 import SettingsStore from "./background/settingsStore";
-import Settings from "./background/settings";
+import Settings from "./shared/settings";
 import { ipcMain } from "electron";
 
 const isDevelopment: boolean = process.env.NODE_ENV !== "production";
