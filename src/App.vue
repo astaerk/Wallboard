@@ -47,13 +47,13 @@ export default class App extends Vue {
     this.bindIPCEvents();
   }
 
-  private bindIPCEvents() {
+  private bindIPCEvents(): void {
     ipcRenderer.on("navigationRequest", (e: Event, url: string) =>
       this.onNavigationRequest(url)
     );
   }
 
-  private onNavigationRequest(url: string) {
+  private onNavigationRequest(url: string): void {
     this.$router.push(url);
   }
 }

@@ -1,15 +1,17 @@
 import Settings from "../shared/settings";
-import Site from "../shared/site";
+import { ipcRenderer } from "electron";
 
 export default class SettingsStore {
 
     public loadSettings(): Promise<Settings> {
         return new Promise((resolve, reject) => {
-            let s: Settings = new Settings();
-            s.sites.push(new Site(1, "www.google.de", 2528732444));
-            s.sites.push(new Site(2, "www.amazon.de", 2528732444));
-            s.sites.push(new Site(3, "www.microsoft.com", 2779098405));
-            resolve(s);
+            let channelName: string = "loadedSettingsResult_" + Math.random().toString() + window.performance.now().toString();
+
+            ipcRenderer.once(channelName, (e: Event, settings: Settings) => {
+                resolve(settings);
+            });
+
+            ipcRenderer.send("settingsStore_loadSettings", channelName);
         });
     }
 
