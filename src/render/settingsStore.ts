@@ -1,5 +1,5 @@
 import Settings from "../shared/settings";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, Event } from "electron";
 
 export default class SettingsStore {
 
@@ -14,13 +14,6 @@ export default class SettingsStore {
             ipcRenderer.send("settingsStore_loadSettings", channelName);
         });
     }
-
-    /*public loadSettings(): Promise<Settings> {
-        if (this.settings == null) {
-            this.settings = this.loadSettingsFromFile();
-        }
-        return this.settings;
-    }*/
 
     public saveSettings(/*a: number*/): void /*Promise<void>*/ {
         /*return new Promise((resolve, reject) => {
@@ -38,9 +31,4 @@ export default class SettingsStore {
         // this.settings = null;
     }
 
-    /*private loadSettingsFromFile(): Promise<Settings> {
-        return new Promise<Settings>((resolve, reject) => {
-            if (fs.existsSync)
-        });
-    }*/
 }

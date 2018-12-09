@@ -16,17 +16,17 @@ let settingsStore: SettingsStore = new SettingsStore();
 // standard scheme must be registered before the app is ready
 protocol.registerStandardSchemes(["app"], { secure: true });
 
-function initApplication(): void {
-  let settings: Settings = loadSettings();
-
-  if (settings.sites.length === 0) {
-    // no settings loaded -> create one window and navigate to settings view
-    closeAllWindows();
-    showSettings();
-  } else {
-    // settings loaded -> create necessary windows
-    showSites(settings);
-  }
+function initApplication(): Promise<void> {
+  return settingsStore.loadSettings().then((settings: Settings) => {
+    if (settings.sites.length === 0) {
+      // no settings loaded -> create one window and navigate to settings view
+      closeAllWindows();
+      showSettings();
+    } else {
+      // settings loaded -> create necessary windows
+      showSites(settings);
+    }
+  });
 }
 
 function closeAllWindows(): void {
@@ -36,10 +36,6 @@ function closeAllWindows(): void {
     }
     windows.length = 0;
   }
-}
-
-function loadSettings(): Settings {
-  return settingsStore.loadSettings();
 }
 
 function showSettings(): void {
@@ -209,7 +205,7 @@ app.on("ready", async () => {
     // install Vue Devtools
     await installVueDevtools();
   }
-  initApplication();
+  await initApplication();
 });
 
 // exit cleanly on request from parent process in development mode.

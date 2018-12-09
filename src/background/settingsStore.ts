@@ -1,7 +1,7 @@
 import Settings from "../shared/settings";
 import * as fs from "fs";
 import { app, ipcMain, Event } from "electron";
-import Site from "../shared/site";
+
 export default class SettingsStore {
 
     // private settingsFilePath: string = app.getPath("appData") + "/Wallboard/settings.json";
@@ -12,10 +12,10 @@ export default class SettingsStore {
         this.registerIPCEvents();
     }
 
-    public loadSettings(): Settings {
-        // let dingens: string = this.rnd + "\n" + this.initialProc + "\n" + isRendererProcess() + "\n" + app.getPath("appData");
-        // console.log(dingens);
-        return new Settings();
+    public loadSettings(): Promise<Settings> {
+        return new Promise<Settings>((resolve, reject) => {
+            resolve(new Settings());
+        });
     }
 
     /*public loadSettings(): Promise<Settings> {
@@ -52,11 +52,9 @@ export default class SettingsStore {
     }
 
     private onLoadSettings(e: Event, responseChannelName: string): void {
-        let settings: Settings = this.loadSettings();
-        settings.sites.push(new Site(1, "www.google.de", 2528732444));
-        settings.sites.push(new Site(2, "www.amazon.de", 2528732444));
-        settings.sites.push(new Site(3, "www.microsoft.com", 2779098405));
-        e.sender.send(responseChannelName, settings);
+        this.loadSettings().then((settings: Settings) => {
+            e.sender.send(responseChannelName, settings);
+        });
     }
 
 }
