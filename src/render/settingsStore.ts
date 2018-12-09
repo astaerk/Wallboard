@@ -1,15 +1,16 @@
-import Settings from "@/shared/settings";
-import * as fs from "fs";
-import { app } from "electron";
+import Settings from "../shared/settings";
+import Site from "../shared/site";
 
 export default class SettingsStore {
 
-    // private settingsFilePath: string = app.getPath("appData") + "/Wallboard/settings.json";
-
-    // private settings: Promise<Settings> | null = null;
-
-    public loadSettings(): Settings {
-        return new Settings();
+    public loadSettings(): Promise<Settings> {
+        return new Promise((resolve, reject) => {
+            let s: Settings = new Settings();
+            s.sites.push(new Site(1, "www.google.de", 2528732444));
+            s.sites.push(new Site(2, "www.amazon.de", 2528732444));
+            s.sites.push(new Site(3, "www.microsoft.com", 2779098405));
+            resolve(s);
+        });
     }
 
     /*public loadSettings(): Promise<Settings> {

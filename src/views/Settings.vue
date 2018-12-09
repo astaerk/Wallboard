@@ -3,8 +3,8 @@
     <el-tabs>
       <el-tab-pane label="Sites">
         <div>
-            <el-form :model="settings" :rules="rules" ref="settingsForm">
-                <el-form-item v-for="(site, index) in settings.sites" :key="site.id">
+            <el-form v-if="settingsWrapper.settings" v-model="settingsWrapper.settings" :rules="rules" ref="settingsForm">
+                <el-form-item v-for="(site, index) in settingsWrapper.settings.sites" :key="site.id">
                     <el-row :gutter="5">
                         <el-col :span="12">
                             <el-form-item
@@ -28,7 +28,7 @@
             </el-form>
             
             <el-row>
-              <el-col :span="1"><el-button @click="addSite()">+</el-button></el-col>
+              <el-col :span="1"><el-button @click="addSite()" :disabled="settingsWrapper.settings === null">+</el-button></el-col>
             </el-row>
         </div>
       </el-tab-pane>
@@ -77,7 +77,21 @@ import { ipcRenderer, screen } from "electron";
 export default class SettingsComponent extends Vue {
   private settingsStore = new SettingsStore();
 
-  public settings: Settings = this.settingsStore.loadSettings();
+  public settingsWrapper: { settings: Settings | null } = {
+    settings: null
+  };
+
+  constructor() {
+    super();
+
+    this.settingsStore.loadSettings().then((value: Settings) => {
+      if (value) {
+        this.settingsWrapper.settings = value;
+      } else {
+        this.settingsWrapper.settings = new Settings();
+      }
+    });
+  }
 
   public rules: any = {
     /*name: [
@@ -109,13 +123,20 @@ export default class SettingsComponent extends Vue {
   }
 
   public deleteSite(siteId: any) {
-    let sites = this.settings.sites;
+    if (this.settingsWrapper.settings === null) {
+      return;
+    }
+    let sites = this.settingsWrapper.settings.sites;
     let idx = sites.findIndex(s => s.id === siteId);
     sites.splice(idx, 1);
   }
 
   public addSite() {
-    let sites = this.settings.sites;
+    if (this.settingsWrapper.settings === null) {
+      return;
+    }
+
+    let sites = this.settingsWrapper.settings.sites;
 
     let maxId = Math.max(...sites.map(s => s.id));
     let newId = maxId + 1;
