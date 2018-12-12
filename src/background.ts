@@ -13,6 +13,10 @@ const isDevelopment: boolean = process.env.NODE_ENV !== "production";
 let windows: BrowserWindow[] = [];
 let settingsStore: SettingsStore = new SettingsStore();
 
+settingsStore.onSettingsChanged(() => {
+  initApplication();
+});
+
 // standard scheme must be registered before the app is ready
 protocol.registerStandardSchemes(["app"], { secure: true });
 
@@ -177,10 +181,6 @@ function navigateInWindow(window: BrowserWindow, url: string): void {
     window.webContents.send("navigationRequest", url);
   });
 }
-
-ipcMain.on("settingsChanged", (e: any) => {
-  initApplication();
-});
 
 // quit when all windows are closed.
 app.on("window-all-closed", () => {

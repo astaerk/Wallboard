@@ -4,56 +4,92 @@ import { app, ipcMain, Event } from "electron";
 
 export default class SettingsStore {
 
-    // private settingsFilePath: string = app.getPath("appData") + "/Wallboard/settings.json";
+    private settingsFilePath: string = app.getPath("appData") + "/Wallboard/settings.json";
 
-    // private settings: Promise<Settings> | null = null;
+    private settings: Promise<Settings> | null = null;
+
+    private onSettingsChangedCallback: (() => void) | null = null;
 
     constructor() {
         this.registerIPCEvents();
     }
 
     public loadSettings(): Promise<Settings> {
-        return new Promise<Settings>((resolve, reject) => {
-            resolve(new Settings());
-        });
-    }
-
-    /*public loadSettings(): Promise<Settings> {
         if (this.settings == null) {
             this.settings = this.loadSettingsFromFile();
         }
         return this.settings;
-    }*/
+    }
 
-    public saveSettings(/*a: number*/): void /*Promise<void>*/ {
-        /*return new Promise((resolve, reject) => {
-            fs.writeFile(this.settingsFilePath, this.settings, (err: NodeJS.ErrnoException) => {
-                if (err) {
-                    console.error(err);
-                    reject();
-                    return;
-                }
-            });
-        });*/
+    public saveSettings(settings: Settings): Promise<void> {
+        return this.saveSettingsToFile(settings).then(() => {
+            this.clearCache();
+            if (this.onSettingsChangedCallback) {
+                this.onSettingsChangedCallback();
+            }
+        });
     }
 
     public clearCache(): void {
-        // this.settings = null;
+        this.settings = null;
     }
 
-    /*private loadSettingsFromFile(): Promise<Settings> {
-        return new Promise<Settings>((resolve, reject) => {
-            if (fs.existsSync)
-        });
-    }*/
+    public onSettingsChanged(callback: () => void): void {
+        this.onSettingsChangedCallback = callback;
+    }
 
     private registerIPCEvents(): void {
         ipcMain.on("settingsStore_loadSettings", (e: Event, responseChannelName: string) => this.onLoadSettings(e, responseChannelName));
+        ipcMain.on("settingsStore_saveSettings", (e: Event, responseChannelName: string, settings: Settings) => {
+            this.onSaveSettings(e, responseChannelName, settings);
+        });
+        ipcMain.on("settingsStore_clearCache", (e: Event) => this.onClearSettingsCache(e));
     }
 
     private onLoadSettings(e: Event, responseChannelName: string): void {
         this.loadSettings().then((settings: Settings) => {
             e.sender.send(responseChannelName, settings);
+        });
+    }
+
+    private onSaveSettings(e: Event, responseChannelName: string, settings: Settings): void {
+        this.saveSettings(settings).then(() => {
+            e.sender.send(responseChannelName);
+        });
+    }
+
+    private onClearSettingsCache(e: Event): void {
+        this.clearCache();
+    }
+
+    private loadSettingsFromFile(): Promise<Settings> {
+        return new Promise<Settings>((resolve, reject) => {
+            if (!fs.existsSync(this.settingsFilePath)) {
+                resolve(new Settings());
+            }
+
+            fs.readFile(this.settingsFilePath, (err: NodeJS.ErrnoException, data: Buffer) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                let settings: Settings = JSON.parse(<any>data);
+                resolve(settings);
+            });
+        });
+    }
+
+    private saveSettingsToFile(settings: Settings): Promise<void> {
+        console.log(JSON.stringify(settings));
+        return new Promise((resolve, reject) => {
+            fs.writeFile(this.settingsFilePath, JSON.stringify(settings), (err: NodeJS.ErrnoException) => {
+                if (err) {
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
         });
     }
 

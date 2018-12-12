@@ -3,7 +3,7 @@
     <el-tabs>
       <el-tab-pane label="Sites">
         <div>
-            <el-form v-if="settingsWrapper.settings" v-model="settingsWrapper.settings" :rules="rules" ref="settingsForm">
+            <el-form v-if="settingsWrapper.settings" :model="settingsWrapper.settings" :rules="rules" ref="settingsForm">
                 <el-form-item v-for="(site, index) in settingsWrapper.settings.sites" :key="site.id">
                     <el-row :gutter="5">
                         <el-col :span="12">
@@ -104,11 +104,16 @@ export default class SettingsComponent extends Vue {
     ]*/
   };
 
-  public save() {
-    (<any>this.$refs["settingsForm"]).validate((valid: boolean) => {
+  public save(): void {
+    if (!this.settingsWrapper.settings) {
+      return;
+    }
+
+    let settings: Settings = this.settingsWrapper.settings;
+
+    (<any>this.$refs["settingsForm"]).validate((valid: boolean): boolean => {
       if (valid) {
-        this.settingsStore.saveSettings();
-        ipcRenderer.send("settingsChanged");
+        this.settingsStore.saveSettings(settings);
         return true;
       } else {
         return false;
@@ -116,13 +121,13 @@ export default class SettingsComponent extends Vue {
     });
   }
 
-  public cancel() {
+  public cancel(): void {
     (<any>this.$refs["settingsForm"]).resetFields();
     this.settingsStore.clearCache();
     this.$router.push("/");
   }
 
-  public deleteSite(siteId: any) {
+  public deleteSite(siteId: any): void {
     if (this.settingsWrapper.settings === null) {
       return;
     }
@@ -131,7 +136,7 @@ export default class SettingsComponent extends Vue {
     sites.splice(idx, 1);
   }
 
-  public addSite() {
+  public addSite(): void {
     if (this.settingsWrapper.settings === null) {
       return;
     }

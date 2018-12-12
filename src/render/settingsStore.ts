@@ -15,20 +15,20 @@ export default class SettingsStore {
         });
     }
 
-    public saveSettings(/*a: number*/): void /*Promise<void>*/ {
-        /*return new Promise((resolve, reject) => {
-            fs.writeFile(this.settingsFilePath, this.settings, (err: NodeJS.ErrnoException) => {
-                if (err) {
-                    console.error(err);
-                    reject();
-                    return;
-                }
+    public saveSettings(settings: Settings): Promise<void> {
+        return new Promise((resolve, reject) => {
+            let channelName: string = "saveSettingsResult_" + Math.random().toString() + window.performance.now().toString();
+
+            ipcRenderer.once(channelName, (e: Event) => {
+                resolve();
             });
-        });*/
+
+            ipcRenderer.send("settingsStore_saveSettings", channelName, settings);
+        });
     }
 
     public clearCache(): void {
-        // this.settings = null;
+        ipcRenderer.send("settingsStore_clearCache");
     }
 
 }
