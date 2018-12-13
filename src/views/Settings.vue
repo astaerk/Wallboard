@@ -17,7 +17,9 @@
                             <el-form-item
                                 :prop="'sites.' + index + '.displayId'"
                                 :rules="{required: true, message: 'Please select a display', trigger: 'blur'}">
-                                <el-input v-model="site.displayId"></el-input>
+                                <el-select v-model="site.displayId" value-key="name" placeholder="Monitor">
+                                  <el-option v-for="(display) in availableDisplays" :key="display.id" :label="display.name" :value="display.id"></el-option>
+                                </el-select>
                             </el-form-item>
                         </el-col>
                         <el-col :span="1">
@@ -61,17 +63,7 @@ import Settings from "../shared/settings";
 import Site from "../shared/site";
 import SettingsStore from "../render/settingsStore";
 import { ipcRenderer, screen } from "electron";
-
-/*let allDisplays: Electron.Display[] = screen.getAllDisplays();
-  let selectedDisplay = allDisplays.find((d) => {
-    console.log("id: " + d.id);
-    console.log("bounds w x h: " + d.bounds.width + " x " + d.bounds.height);
-    console.log("bounds x x y: " + d.bounds.x + " x " + d.bounds.y);
-    console.log("workArea w x h: " + d.workArea.width + " x " + d.workArea.height);
-    console.log("workArea x x y: " + d.workArea.x + " x " + d.workArea.y);
-    console.log("workAreaSize w x h: " + d.workAreaSize.width + " x " + d.workAreaSize.height);
-    return d.id === 0;
-  });*/
+import { isNumber } from "util";
 
 @Component({ name: "settings" })
 export default class SettingsComponent extends Vue {
@@ -81,8 +73,12 @@ export default class SettingsComponent extends Vue {
     settings: null
   };
 
+  public availableDisplays: Array<{ id: number; name: string }> = [];
+
   constructor() {
     super();
+
+    this.loadAvailableDisplays(this.availableDisplays);
 
     this.settingsStore.loadSettings().then((value: Settings) => {
       if (value) {
@@ -143,12 +139,45 @@ export default class SettingsComponent extends Vue {
 
     let sites = this.settingsWrapper.settings.sites;
 
-    let maxId = Math.max(...sites.map(s => s.id));
-    let newId = maxId + 1;
+    let newId: number;
+
+    if (sites && sites.length > 0) {
+      let maxId = Math.max(...sites.map(s => s.id));
+      newId = maxId + 1;
+      if (!isNumber(newId)) {
+        newId = 0;
+      }
+    } else {
+      newId = 0;
+    }
 
     let site = new Site(newId, "", screen.getPrimaryDisplay().id);
 
     sites.push(site);
+  }
+
+  private loadAvailableDisplays(
+    availableDisplays: Array<{ id: number; name: string }>
+  ): void {
+    let allDisplays: Electron.Display[] = screen
+      .getAllDisplays()
+      .sort((a: Electron.Display, b: Electron.Display): number => {
+        if (a.bounds.y + a.bounds.height < b.bounds.y) return -1;
+        if (a.bounds.y > b.bounds.y + b.bounds.height) return 1;
+        if (a.bounds.x < b.bounds.x) return -1;
+        return 1;
+      });
+
+    availableDisplays.length = 0;
+
+    let i = 1;
+    for (let display of allDisplays) {
+      availableDisplays.push({
+        id: display.id,
+        name: "Monitor " + i.toString()
+      });
+      i++;
+    }
   }
 }
 </script>
