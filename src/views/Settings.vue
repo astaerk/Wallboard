@@ -61,6 +61,10 @@
       </el-tab-pane>
     </el-tabs>
     <div id="appMenuContainer">
+      <el-button type="infor" @click="monitorInfo()">
+        <img alt="Monitor Info" src="../assets/monitorInfo.png">
+      </el-button>
+      <div class="appMenuSeparator"/>
       <el-button type="infor" @click="cancel()">
         <img alt="Cancel" src="../assets/cancel.png">
       </el-button>
@@ -78,6 +82,7 @@ import Site from "../shared/site";
 import SettingsStore from "../render/settingsStore";
 import { ipcRenderer, screen } from "electron";
 import { isNumber } from "util";
+import Serialijse from "serialijse";
 
 @Component({ name: "settings" })
 export default class SettingsComponent extends Vue {
@@ -166,6 +171,15 @@ export default class SettingsComponent extends Vue {
     let site = new Site(newId, "", screen.getPrimaryDisplay().id);
 
     sites.push(site);
+  }
+
+  public monitorInfo() {
+    if (this.settingsWrapper.settings) {
+      ipcRenderer.send(
+        "showMonitorIdentificationWindows",
+        Serialijse.serialize(this.settingsWrapper.settings.monitors)
+      );
+    }
   }
 }
 </script>

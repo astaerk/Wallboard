@@ -1,10 +1,11 @@
 import { ipcMain, Event, screen, BrowserWindow } from "electron";
 import Monitor from "../shared/monitor";
+import Serialijse from "serialijse";
 
 export default class MonitorManager {
 
     constructor() {
-        // this.registerIPCEvents();
+        this.registerIPCEvents();
     }
 
     public getCurrentMonitorIds(): Array<number> {
@@ -28,7 +29,7 @@ export default class MonitorManager {
         });
 
         for (let display of allDisplays) {
-            var existingMonitor: Monitor | undefined = monitors.find(m => m.id === display.id);
+            let existingMonitor: Monitor | undefined = monitors.find(m => m.id === display.id);
             if (existingMonitor) {
                 // here we could update the existing monitor if necessary
             } else {
@@ -41,68 +42,41 @@ export default class MonitorManager {
         }
     }
 
-
-
-
-
-
-
-    /*public showMonitorIdentificationWindows(availableDisplays: Array<{ id: number; name: string }>): void {
-        if (!availableDisplays) {
-            availableDisplays = [];
-            this.loadAvailableDisplays(availableDisplays);
+    public showMonitorIdentificationWindows(availableMonitors: Monitor[]): void {
+        if (!availableMonitors) {
+            availableMonitors = [];
         }
 
-        let windows: BrowserWindow[] = [];
-        for (let display of availableDisplays) {
-            let window: BrowserWindow = new BrowserWindow({
-                width: 600,
-                height: 600,
-                transparent: true,
-                frame: false,
-                show: false
-            });
-            windows.push(window);
+        this.complementWithCurrentMonitors(availableMonitors);
+
+        let currentMonitorIds: number[] = this.getCurrentMonitorIds();
+
+        // let windows: BrowserWindow[] = [];
+        for (let monitorId of currentMonitorIds) {
+            let monitor: Monitor | undefined = availableMonitors.find(m => m.id === monitorId);
+            if (monitor) {
+                /*let window: BrowserWindow = new BrowserWindow({
+                    width: 600,
+                    height: 600,
+                    transparent: true,
+                    frame: false,
+                    show: false
+                });
+                windows.push(window);*/
+            } else {
+                console.error("Internal error: monitor with id '" + monitorId + "' not found.");
+            }
         }
 
-        for (let window of windows) {
-            // display.id, display.name;
-        }
+        // for (let window of windows) {
+        //  display.id, display.name;
+        // }
     }
 
     private registerIPCEvents(): void {
-        ipcMain.on("showMonitorIdentificationWindows", (e: Event, d: Array<{ id: number; name: string }>) => {
-            this.showMonitorIdentificationWindows(d);
+        ipcMain.on("showMonitorIdentificationWindows", (e: Event, monitorsStr: string) => {
+            var monitors: Monitor[] = Serialijse.deserialize<Monitor[]>(monitorsStr);
+            this.showMonitorIdentificationWindows(monitors);
         });
     }
-
-    private loadAvailableDisplays(
-        availableDisplays: Array<{ id: number; name: string }>
-    ): void {
-        let allDisplays: Electron.Display[] = screen
-            .getAllDisplays()
-            .sort((a: Electron.Display, b: Electron.Display): number => {
-                if (a.bounds.y + a.bounds.height < b.bounds.y) {
-                    return -1;
-                }
-                if (a.bounds.y > b.bounds.y + b.bounds.height) {
-                    return 1;
-                }
-                if (a.bounds.x < b.bounds.x) {
-                    return -1;
-                }
-                return 1;
-            });
-
-        availableDisplays.length = 0;
-
-        let i: number = 1;
-        for (let display of allDisplays) {
-            availableDisplays.push({
-                id: display.id,
-                name: "Monitor " + i.toString()
-            });
-            i++;
-        }
-    }*/
 }
