@@ -16,9 +16,9 @@
                         <el-col :span="2">
                             <el-form-item
                                 :prop="'sites.' + index + '.displayId'"
-                                :rules="{required: true, message: 'Please select a display', trigger: 'blur'}">
+                                :rules="{required: true, message: 'Please select a monitor', trigger: 'blur'}">
                                 <el-select v-model="site.displayId" value-key="name" placeholder="Monitor">
-                                  <el-option v-for="(display) in availableDisplays" :key="display.id" :label="display.name" :value="display.id"></el-option>
+                                  <el-option v-for="(monitor) in settingsWrapper.settings.monitors" :key="monitor.id" :label="monitor.displayName" :value="monitor.id"></el-option>
                                 </el-select>
                             </el-form-item>
                         </el-col>
@@ -73,12 +73,8 @@ export default class SettingsComponent extends Vue {
     settings: null
   };
 
-  public availableDisplays: Array<{ id: number; name: string }> = [];
-
   constructor() {
     super();
-
-    this.loadAvailableDisplays(this.availableDisplays);
 
     this.settingsStore.loadSettings().then((value: Settings) => {
       if (value) {
@@ -154,30 +150,6 @@ export default class SettingsComponent extends Vue {
     let site = new Site(newId, "", screen.getPrimaryDisplay().id);
 
     sites.push(site);
-  }
-
-  private loadAvailableDisplays(
-    availableDisplays: Array<{ id: number; name: string }>
-  ): void {
-    let allDisplays: Electron.Display[] = screen
-      .getAllDisplays()
-      .sort((a: Electron.Display, b: Electron.Display): number => {
-        if (a.bounds.y + a.bounds.height < b.bounds.y) return -1;
-        if (a.bounds.y > b.bounds.y + b.bounds.height) return 1;
-        if (a.bounds.x < b.bounds.x) return -1;
-        return 1;
-      });
-
-    availableDisplays.length = 0;
-
-    let i = 1;
-    for (let display of allDisplays) {
-      availableDisplays.push({
-        id: display.id,
-        name: "Monitor " + i.toString()
-      });
-      i++;
-    }
   }
 }
 </script>
