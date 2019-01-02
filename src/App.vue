@@ -33,6 +33,16 @@
 #appMenuContainer .el-button {
   padding: 2px;
 }
+#appMenuContainer .appMenuSeparator {
+  display: inline-block;
+  border: 1px solid #e4e7ed;
+  width: 0px;
+  height: 20px;
+  margin-left: 10px;
+}
+#appMenuContainer .appMenuSeparator + .el-button {
+  margin-left: 10px;
+}
 </style>
 
 <script lang="ts">
