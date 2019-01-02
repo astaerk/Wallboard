@@ -1,15 +1,22 @@
 import Settings from "../shared/settings";
 import * as fs from "fs";
 import { app, ipcMain, Event } from "electron";
+import MonitorManager from "./monitorManager";
 import Serialijse from "serialijse";
 
 export default class SettingsStore {
 
     private settingsFilePath: string = app.getPath("appData") + "/Wallboard/settings.json";
 
+    private _monitorManager = new MonitorManager();
+
     private settings: Promise<Settings> | null = null;
 
     private onSettingsChangedCallback: (() => void) | null = null;
+
+    public get monitorManager(): MonitorManager {
+        return this._monitorManager;
+    }
 
     constructor() {
         this.registerIPCEvents();
@@ -19,7 +26,11 @@ export default class SettingsStore {
         if (this.settings == null) {
             this.settings = this.loadSettingsFromFile();
         }
-        return this.settings;
+        return this.settings.then((value: Settings): Settings => {
+            value.monitors = value.monitors || [];
+            this._monitorManager.complementWithCurrentMonitors(value.monitors);
+            return value;
+        });
     }
 
     public saveSettings(settings: Settings): Promise<void> {
