@@ -4,7 +4,9 @@
     <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
     <div id="appMenuContainer">
       <el-button type="infor">
-        <router-link to="/settings"><img alt="Settings" src="../assets/settings.png"></router-link>
+        <router-link to="/settings">
+          <img alt="Settings" src="../assets/settings.png">
+        </router-link>
       </el-button>
     </div>
   </div>
