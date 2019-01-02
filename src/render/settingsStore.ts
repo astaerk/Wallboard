@@ -1,5 +1,6 @@
 import Settings from "../shared/settings";
 import { ipcRenderer, Event } from "electron";
+import Serialijse from "serialijse";
 
 export default class SettingsStore {
 
@@ -7,7 +8,8 @@ export default class SettingsStore {
         return new Promise((resolve, reject) => {
             let channelName: string = "loadedSettingsResult_" + Math.random().toString() + window.performance.now().toString();
 
-            ipcRenderer.once(channelName, (e: Event, settings: Settings) => {
+            ipcRenderer.once(channelName, (e: Event, settingsStr: string) => {
+                let settings: Settings = Serialijse.deserialize<Settings>(settingsStr);
                 resolve(settings);
             });
 
@@ -23,7 +25,9 @@ export default class SettingsStore {
                 resolve();
             });
 
-            ipcRenderer.send("settingsStore_saveSettings", channelName, settings);
+            let settingsStr: string = Serialijse.serialize(settings);
+
+            ipcRenderer.send("settingsStore_saveSettings", channelName, settingsStr);
         });
     }
 

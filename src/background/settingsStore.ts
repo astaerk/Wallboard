@@ -52,19 +52,21 @@ export default class SettingsStore {
 
     private registerIPCEvents(): void {
         ipcMain.on("settingsStore_loadSettings", (e: Event, responseChannelName: string) => this.onLoadSettings(e, responseChannelName));
-        ipcMain.on("settingsStore_saveSettings", (e: Event, responseChannelName: string, settings: Settings) => {
-            this.onSaveSettings(e, responseChannelName, settings);
+        ipcMain.on("settingsStore_saveSettings", (e: Event, responseChannelName: string, settingsStr: string) => {
+            this.onSaveSettings(e, responseChannelName, settingsStr);
         });
         ipcMain.on("settingsStore_clearCache", (e: Event) => this.onClearSettingsCache(e));
     }
 
     private onLoadSettings(e: Event, responseChannelName: string): void {
         this.loadSettings().then((settings: Settings) => {
-            e.sender.send(responseChannelName, settings);
+            e.sender.send(responseChannelName, Serialijse.serialize(settings));
         });
     }
 
-    private onSaveSettings(e: Event, responseChannelName: string, settings: Settings): void {
+    private onSaveSettings(e: Event, responseChannelName: string, settingsStr: string): void {
+
+        let settings: Settings = Serialijse.deserialize<Settings>(settingsStr);
         this.saveSettings(settings).then(() => {
             e.sender.send(responseChannelName);
         });
