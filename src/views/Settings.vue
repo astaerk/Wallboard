@@ -3,35 +3,49 @@
     <el-tabs>
       <el-tab-pane label="Sites">
         <div>
-            <el-form v-if="settingsWrapper.settings" :model="settingsWrapper.settings" :rules="rules" ref="settingsForm">
-                <el-form-item v-for="(site, index) in settingsWrapper.settings.sites" :key="site.id">
-                    <el-row :gutter="5">
-                        <el-col :span="12">
-                            <el-form-item
-                                :prop="'sites.' + index + '.name'"
-                                :rules="{required: true, message: 'Please input a site name', trigger: 'blur'}">
-                                <el-input v-model="site.name" placeholder="www.example.com"></el-input>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="2">
-                            <el-form-item
-                                :prop="'sites.' + index + '.displayId'"
-                                :rules="{required: true, message: 'Please select a monitor', trigger: 'blur'}">
-                                <el-select v-model="site.displayId" value-key="name" placeholder="Monitor">
-                                  <el-option v-for="(monitor) in settingsWrapper.settings.monitors" :key="monitor.id" :label="monitor.displayName" :value="monitor.id"></el-option>
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="1">
-                            <el-button @click="deleteSite(site.id)">X</el-button>
-                        </el-col>
-                    </el-row>
-                </el-form-item>
-            </el-form>
-            
-            <el-row>
-              <el-col :span="1"><el-button @click="addSite()" :disabled="settingsWrapper.settings === null">+</el-button></el-col>
-            </el-row>
+          <el-form
+            v-if="settingsWrapper.settings"
+            :model="settingsWrapper.settings"
+            :rules="rules"
+            ref="settingsForm"
+          >
+            <el-form-item v-for="(site, index) in settingsWrapper.settings.sites" :key="site.id">
+              <el-row :gutter="5">
+                <el-col :span="12">
+                  <el-form-item
+                    :prop="'sites.' + index + '.name'"
+                    :rules="{required: true, message: 'Please input a site name', trigger: 'blur'}"
+                  >
+                    <el-input v-model="site.name" placeholder="www.example.com"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="2">
+                  <el-form-item
+                    :prop="'sites.' + index + '.displayId'"
+                    :rules="{required: true, message: 'Please select a monitor', trigger: 'blur'}"
+                  >
+                    <el-select v-model="site.displayId" value-key="name" placeholder="Monitor">
+                      <el-option
+                        v-for="(monitor) in settingsWrapper.settings.monitors"
+                        :key="monitor.id"
+                        :label="monitor.displayName"
+                        :value="monitor.id"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="1">
+                  <el-button @click="deleteSite(site.id)">X</el-button>
+                </el-col>
+              </el-row>
+            </el-form-item>
+          </el-form>
+
+          <el-row>
+            <el-col :span="1">
+              <el-button @click="addSite()" :disabled="settingsWrapper.settings === null">+</el-button>
+            </el-col>
+          </el-row>
         </div>
       </el-tab-pane>
       <el-tab-pane label="General Settings">
@@ -103,14 +117,16 @@ export default class SettingsComponent extends Vue {
 
     let settings: Settings = this.settingsWrapper.settings;
 
-    (<any>this.$refs["settingsForm"]).validate((valid: boolean): boolean => {
-      if (valid) {
-        this.settingsStore.saveSettings(settings);
-        return true;
-      } else {
-        return false;
+    (<any>this.$refs["settingsForm"]).validate(
+      (valid: boolean): boolean => {
+        if (valid) {
+          this.settingsStore.saveSettings(settings);
+          return true;
+        } else {
+          return false;
+        }
       }
-    });
+    );
   }
 
   public cancel(): void {
