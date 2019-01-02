@@ -38,6 +38,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import { ipcRenderer, Event } from "electron";
+import SerializerConfigManager from "./shared/serializerConfigManager";
+
+SerializerConfigManager.registerSerializableTypes();
 
 @Component({})
 export default class App extends Vue {

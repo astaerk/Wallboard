@@ -1,6 +1,3 @@
-import Serializable from "./serializableDecorator";
-
-@Serializable()
 export default class Monitor {
 
     private _id: number;

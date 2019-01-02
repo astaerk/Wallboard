@@ -4,8 +4,11 @@ import { app, protocol, BrowserWindow, screen } from "electron";
 import { createProtocol, installVueDevtools } from "vue-cli-plugin-electron-builder/lib";
 import SettingsStore from "./background/settingsStore";
 import Settings from "./shared/settings";
+import SerializerConfigManager from "./shared/serializerConfigManager";
 
 const isDevelopment: boolean = process.env.NODE_ENV !== "production";
+
+SerializerConfigManager.registerSerializableTypes();
 
 // keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

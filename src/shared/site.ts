@@ -1,6 +1,3 @@
-import Serializable from "./serializableDecorator";
-
-@Serializable()
 export default class Site {
     public id: number;
     public name: string;
