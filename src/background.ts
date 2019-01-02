@@ -4,7 +4,6 @@ import { app, protocol, BrowserWindow, screen } from "electron";
 import { createProtocol, installVueDevtools } from "vue-cli-plugin-electron-builder/lib";
 import SettingsStore from "./background/settingsStore";
 import Settings from "./shared/settings";
-import { ipcMain } from "electron";
 
 const isDevelopment: boolean = process.env.NODE_ENV !== "production";
 
@@ -53,8 +52,7 @@ function showSites(settings: Settings): void {
 
   let openWindows: Array<{ displayId: number, window: BrowserWindow, inUse: boolean }> | null = getOpenWindows();
 
-  let allDisplays: Electron.Display[] = screen.getAllDisplays();
-  let validDisplayIds: Array<number> = allDisplays.map(d => d.id);
+  let validDisplayIds: Array<number> = settingsStore.monitorManager.getCurrentMonitorIds();
 
   let usedDisplayIds: Array<number> = [];
   for (let site of settings.sites) {
