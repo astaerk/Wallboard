@@ -1,6 +1,7 @@
 import Settings from "../shared/settings";
 import * as fs from "fs";
 import { app, ipcMain, Event } from "electron";
+import Serialijse from "serialijse";
 
 export default class SettingsStore {
 
@@ -64,6 +65,7 @@ export default class SettingsStore {
 
     private loadSettingsFromFile(): Promise<Settings> {
         return new Promise<Settings>((resolve, reject) => {
+
             if (!fs.existsSync(this.settingsFilePath)) {
                 resolve(new Settings());
             }
@@ -73,16 +75,19 @@ export default class SettingsStore {
                     reject(err);
                     return;
                 }
-                let settings: Settings = JSON.parse(<any>data);
+
+                let settingsString: string = data.toString();
+
+                let settings: Settings = Serialijse.deserialize<Settings>(settingsString);
+
                 resolve(settings);
             });
         });
     }
 
     private saveSettingsToFile(settings: Settings): Promise<void> {
-        console.log(JSON.stringify(settings));
         return new Promise((resolve, reject) => {
-            fs.writeFile(this.settingsFilePath, JSON.stringify(settings), (err: NodeJS.ErrnoException) => {
+            fs.writeFile(this.settingsFilePath, Serialijse.serialize(settings), (err: NodeJS.ErrnoException) => {
                 if (err) {
                     console.error(err);
                     reject(err);
