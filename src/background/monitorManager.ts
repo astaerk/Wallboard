@@ -1,6 +1,9 @@
 import { ipcMain, Event, screen, BrowserWindow } from "electron";
 import Monitor from "../shared/monitor";
 import Serialijse from "serialijse";
+import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
+
+const isDevelopment: boolean = process.env.NODE_ENV !== "production";
 
 export default class MonitorManager {
 
@@ -51,26 +54,46 @@ export default class MonitorManager {
 
         let currentMonitorIds: number[] = this.getCurrentMonitorIds();
 
-        // let windows: BrowserWindow[] = [];
+        let windows: BrowserWindow[] = [];
         for (let monitorId of currentMonitorIds) {
             let monitor: Monitor | undefined = availableMonitors.find(m => m.id === monitorId);
             if (monitor) {
-                /*let window: BrowserWindow = new BrowserWindow({
+                let window: BrowserWindow = new BrowserWindow({
                     width: 600,
                     height: 600,
                     transparent: true,
                     frame: false,
                     show: false
                 });
-                windows.push(window);*/
+
+                let url: string = "/windowIdentification.html?name=" + monitor.displayName;
+
+                if (isDevelopment || process.env.IS_TEST) {
+                    // load the url of the dev server if in development mode
+                    window.loadURL((process.env.WEBPACK_DEV_SERVER_URL as string) + url);
+                } else {
+                    createProtocol("app");
+                    // load the windowIdentification.html when not in development
+                    window.loadURL("app://." + url);
+                }
+
+                // window.webContents.openDevTools();
+
+                windows.push(window);
             } else {
                 console.error("Internal error: monitor with id '" + monitorId + "' not found.");
             }
         }
 
-        // for (let window of windows) {
-        //  display.id, display.name;
-        // }
+        for (let window of windows) {
+            window.show();
+        }
+
+        /*setTimeout(() => {
+            for (let window of windows) {
+                window.close();
+            }
+        }, 5000);*/
     }
 
     private registerIPCEvents(): void {
