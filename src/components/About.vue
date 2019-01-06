@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
 .about {
   text-align: left;
 }
