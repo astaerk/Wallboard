@@ -2,6 +2,7 @@ export default class Monitor {
 
     private _id: number;
     private _displayName: string;
+    private _monitorNumber: number;
 
     public get id(): number {
         return this._id;
@@ -14,8 +15,16 @@ export default class Monitor {
         this._displayName = value;
     }
 
-    constructor(id: number, displayName: string = "") {
+    public get monitorNumber(): number {
+        return this._monitorNumber;
+    }
+    public set monitorNumber(value: number) {
+        this._monitorNumber = value;
+    }
+
+    constructor(id: number, monitorNumber: number, displayName: string) {
         this._id = id;
+        this._monitorNumber = monitorNumber;
         this._displayName = displayName;
     }
 

@@ -7,6 +7,35 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title>Wallboard</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #contentContainer {
+            background: rgba(220, 220, 220, 0.95);
+            border: 1px solid black;
+            height: calc(100% - 2px);
+            width: calc(100% - 2px);
+            border-radius: 25px 70px 35px 60px;
+        }
+
+        #monitorNameContainer {
+            height: calc(100vh - 2px);
+            line-height: calc(100vh - 2px);
+            text-align: center;
+        }
+
+        #monitorName {
+            font-size: 36pt;
+            display: inline-block;
+            vertical-align: middle;
+            line-height: normal;
+        }
+    </style>
 </head>
 
 <body>
@@ -15,7 +44,11 @@
             continue.</strong>
     </noscript>
 
-    <div style="background: white;"><span id="monitorName"></span></div>
+    <div id="contentContainer">
+        <div id="monitorNameContainer">
+            <span id="monitorName">Monitor</span>
+        </div>
+    </div>
     <script>
         var url_string = window.location.href;
         var url = new URL(url_string);

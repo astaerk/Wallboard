@@ -33,13 +33,16 @@ export default class MonitorManager {
 
         for (let display of allDisplays) {
             let existingMonitor: Monitor | undefined = monitors.find(m => m.id === display.id);
+
             if (existingMonitor) {
-                // here we could update the existing monitor if necessary
+                let displayName: string = "Monitor " + existingMonitor.monitorNumber.toString()
+                    + " (" + display.bounds.width.toString() + "x" + display.bounds.height.toString() + ")";
+                existingMonitor.displayName = displayName;
             } else {
                 let monitorNo: number = monitors.length + 1;
-                var displayName: string = "Monitor " + monitorNo.toString()
+                let displayName: string = "Monitor " + monitorNo.toString()
                     + " (" + display.bounds.width.toString() + "x" + display.bounds.height.toString() + ")";
-                existingMonitor = new Monitor(display.id, displayName);
+                existingMonitor = new Monitor(display.id, monitorNo, displayName);
                 monitors.push(existingMonitor);
             }
         }
@@ -54,32 +57,57 @@ export default class MonitorManager {
 
         let currentMonitorIds: number[] = this.getCurrentMonitorIds();
 
+        let allCurrentDisplays: Electron.Display[] = screen.getAllDisplays();
+
+        const desiredWidth: number = 650;
+        const desiredHeight: number = 250;
+
         let windows: BrowserWindow[] = [];
         for (let monitorId of currentMonitorIds) {
             let monitor: Monitor | undefined = availableMonitors.find(m => m.id === monitorId);
             if (monitor) {
-                let window: BrowserWindow = new BrowserWindow({
-                    width: 600,
-                    height: 600,
-                    transparent: true,
-                    frame: false,
-                    show: false
-                });
 
-                let url: string = "/windowIdentification.html?name=" + monitor.displayName;
+                var display: Electron.Display | undefined = allCurrentDisplays.find(d => d.id === monitorId);
 
-                if (isDevelopment || process.env.IS_TEST) {
-                    // load the url of the dev server if in development mode
-                    window.loadURL((process.env.WEBPACK_DEV_SERVER_URL as string) + url);
+                if (display) {
+                    let browserWindowConstructorOptions: Electron.BrowserWindowConstructorOptions = {
+                        width: (display.bounds.width > desiredWidth ? desiredWidth : display.bounds.width),
+                        height: (display.bounds.height > desiredHeight ? desiredHeight : display.bounds.height),
+                        transparent: true,
+                        frame: false,
+                        show: false,
+                        alwaysOnTop: true,
+                        center: true,
+                        focusable: false,
+                        movable: false,
+                        resizable: false,
+                        skipTaskbar: true
+                    };
+
+                    let x: number = display.bounds.x + ((display.bounds.width - browserWindowConstructorOptions.width!) / 2);
+                    let y: number = display.bounds.y + ((display.bounds.height - browserWindowConstructorOptions.height!) / 2);
+                    browserWindowConstructorOptions.x = x;
+                    browserWindowConstructorOptions.y = y;
+
+                    let window: BrowserWindow = new BrowserWindow(browserWindowConstructorOptions);
+
+                    let url: string = "/windowIdentification.html?name=" + monitor.displayName;
+
+                    if (isDevelopment || process.env.IS_TEST) {
+                        // load the url of the dev server if in development mode
+                        window.loadURL((process.env.WEBPACK_DEV_SERVER_URL as string) + url);
+                    } else {
+                        createProtocol("app");
+                        // load the windowIdentification.html when not in development
+                        window.loadURL("app://." + url);
+                    }
+
+                    // window.webContents.openDevTools();
+
+                    windows.push(window);
                 } else {
-                    createProtocol("app");
-                    // load the windowIdentification.html when not in development
-                    window.loadURL("app://." + url);
+                    console.error("Internal error: electron display with id '" + monitorId + "' not found.");
                 }
-
-                // window.webContents.openDevTools();
-
-                windows.push(window);
             } else {
                 console.error("Internal error: monitor with id '" + monitorId + "' not found.");
             }
@@ -89,11 +117,11 @@ export default class MonitorManager {
             window.show();
         }
 
-        /*setTimeout(() => {
+        setTimeout(() => {
             for (let window of windows) {
                 window.close();
             }
-        }, 5000);*/
+        }, 5000);
     }
 
     private registerIPCEvents(): void {
