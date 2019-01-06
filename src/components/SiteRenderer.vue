@@ -16,6 +16,7 @@ import Site from "@/shared/site";
 import { screen } from "electron";
 import Settings from "../shared/settings";
 import SettingsStore from "../render/settingsStore";
+import { ipcRenderer, Event } from "electron";
 
 @Component
 export default class SiteRenderer extends Vue {
@@ -23,6 +24,9 @@ export default class SiteRenderer extends Vue {
 
   constructor() {
     super();
+    ipcRenderer.on("navigationRequest", (e: Event, url: string) =>
+      this.loadSites()
+    );
     this.loadSites();
   }
 
