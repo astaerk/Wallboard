@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
     <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
     <div id="appMenuContainer">
       <el-button type="infor">
@@ -16,7 +15,7 @@
       <el-tab-pane label="Default Vue">
         <div id="nav">
           <router-link to="/">Home</router-link> |
-          <router-link to="/about">About</router-link>
+          <router-link to="/settings">Settings</router-link>
           
         </div>
       </el-tab-pane>

@@ -59,6 +59,9 @@
           <el-button>el-button 2</el-button>
         </div>-->
       </el-tab-pane>
+      <el-tab-pane label="About">
+        <About/>
+      </el-tab-pane>
     </el-tabs>
     <div id="appMenuContainer">
       <el-button type="infor" @click="monitorInfo()">
@@ -77,6 +80,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
+import About from "@/components/About.vue";
 import Settings from "../shared/settings";
 import Site from "../shared/site";
 import SettingsStore from "../render/settingsStore";
@@ -84,7 +88,12 @@ import { ipcRenderer, screen } from "electron";
 import { isNumber } from "util";
 import Serialijse from "serialijse";
 
-@Component({ name: "settings" })
+@Component({
+  name: "settings",
+  components: {
+    About
+  }
+})
 export default class SettingsComponent extends Vue {
   private settingsStore = new SettingsStore();
 
